@@ -1,12 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <script>
-      const pwd = prompt("Enter access code:");
-      if (pwd !== "Thenry12") {
-        document.body.innerHTML = "<h2 style='font-family:sans-serif;padding:40px'>Access denied.</h2>";
-      }
-    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Italnord — Countertop Quote</title>
@@ -203,6 +197,34 @@
     </style>
 </head>
 <body>
+
+<!-- ── Login overlay ──────────────────────────────────────────── -->
+<div id="login-overlay" style="position:fixed;inset:0;z-index:99999;background:#1a1a1a;display:flex;align-items:center;justify-content:center;font-family:'Raleway',sans-serif">
+    <div style="background:#141414;border:1px solid #333;border-radius:6px;padding:36px 40px;min-width:320px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,0.6)">
+        <h1 style="font-weight:400;letter-spacing:5px;color:#e0ddd5;font-size:22px;margin-bottom:4px">ITALNORD</h1>
+        <div style="font-size:10px;color:#888;letter-spacing:2px;margin-bottom:26px">céramique · pierre</div>
+        <input id="login-pwd" type="password" placeholder="Access code" autofocus
+            style="width:100%;background:#0e0e0e;border:1px solid #333;border-radius:4px;color:#e0ddd5;font-family:inherit;font-size:13px;padding:10px 12px;outline:none;text-align:center;letter-spacing:2px">
+        <div id="login-err" style="color:#c46b6b;font-size:11px;margin-top:8px;min-height:14px"></div>
+        <button id="login-btn" style="margin-top:14px;width:100%;background:#c8c0b0;border:none;border-radius:4px;color:#1a1a1a;font-family:inherit;font-weight:600;font-size:12px;letter-spacing:1px;padding:10px;cursor:pointer">ENTER</button>
+    </div>
+</div>
+<script>
+(function(){
+    const CODE = 'Thenry12';
+    const overlay = document.getElementById('login-overlay');
+    const input = document.getElementById('login-pwd');
+    const btn = document.getElementById('login-btn');
+    const err = document.getElementById('login-err');
+    function tryLogin(){
+        if (input.value === CODE) { overlay.remove(); }
+        else { err.textContent = 'Incorrect code'; input.value = ''; input.focus(); }
+    }
+    btn.addEventListener('click', tryLogin);
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') tryLogin(); });
+    setTimeout(() => input.focus(), 50);
+})();
+</script>
 
 <header>
     <h1 style="font-weight:400;letter-spacing:5px;color:#e0ddd5;">ITALNORD</h1>
