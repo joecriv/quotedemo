@@ -1865,13 +1865,17 @@ function drawJointLines(s) {
     for (const j of s.joints) {
         const isSel = selectedJoint?.j === j;
         ctx.save();
-        // Clip joint lines to the actual polygon shape
+        // Clip joint lines to the actual shape boundary
         if (s.shapeType === 'l' || s.shapeType === 'bsp') {
             const pts = s.shapeType === 'l' ? lShapePolygon(s) : bspPolygon(s);
             ctx.beginPath();
             ctx.moveTo(pts[0][0], pts[0][1]);
             for (let i=1; i<pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
             ctx.closePath(); ctx.clip();
+        } else {
+            const _r = shapeRadii(s), _ch = shapeChamfers(s), _chB = shapeChamfersB(s);
+            const hasCorner = Object.values(_r).some(v=>v>0) || Object.values(_ch).some(v=>v>0);
+            if (hasCorner) { roundedRectPath(ctx, s.x, s.y, s.w, s.h, _r, _ch, _chB); ctx.clip(); }
         }
         ctx.strokeStyle = '#e0457b';
         ctx.lineWidth   = isSel ? 2.5 : 1.8;
@@ -4392,6 +4396,9 @@ function piecePolyInches(x, y, ref, rotation) {
     let base;
     if (ref.segPoly) {
         base = ref.segPoly;
+    } else if (ref.segIdx != null) {
+        // Jointed segment that's a plain rectangle — use segment dimensions, not parent shape
+        base = [[0,0],[wi,0],[wi,hi],[0,hi]];
     } else {
         const page = pages[ref.pageIdx];
         const shape = page && page.shapes[ref.shapeIdx];
@@ -4475,34 +4482,46 @@ function slabAllPieces() {
             const wi = s.w / INCH, hi = s.h / INCH;
             const joints = s.joints || [];
 
-            // Split rect/BSP/L shapes at their joint lines into individual segments
+            // Split rect/BSP/L shapes at their joint lines into grid cells
             const vJoints = joints.filter(j => j.axis === 'v').map(j => j.pos / INCH).sort((a,b)=>a-b);
             const hJoints = joints.filter(j => j.axis === 'h').map(j => j.pos / INCH).sort((a,b)=>a-b);
-            const canSplit = (st === 'rect' || st === 'bsp' || st === 'l') && joints.length > 0
-                          && (vJoints.length === 0 || hJoints.length === 0);
+            const canSplit = (st === 'rect' || st === 'bsp' || st === 'l') && joints.length > 0;
 
             if (!canSplit) {
                 out.push({ pageIdx:pi, shapeIdx:si, label:baseLabel, pageLabel, wi, hi, shapeType:st, segIdx:null });
                 return;
             }
 
-            const useV   = vJoints.length > 0;
-            const cuts   = useV ? [0, ...vJoints, wi] : [0, ...hJoints, hi];
-            const axisX  = useV;
+            const vCuts = vJoints.length > 0 ? [0, ...vJoints, wi] : [0, wi];
+            const hCuts = hJoints.length > 0 ? [0, ...hJoints, hi] : [0, hi];
+            let segCount = 0;
 
-            for (let i = 0; i < cuts.length - 1; i++) {
-                const lo = cuts[i], hi2 = cuts[i+1];
-                const clip = clipShapeToStrip(s, lo, hi2, axisX);
-                if (!clip) continue;
-                out.push({ pageIdx:pi, shapeIdx:si,
-                    label:`${baseLabel}-${SEG_LETTERS[i]||i+1}`,
-                    pageLabel,
-                    wi: axisX ? clip.segW : clip.segW,
-                    hi: axisX ? clip.segH : clip.segH,
-                    shapeType:'rect', segIdx:i,
-                    segOffset:{ axis: useV ? 'v':'h', from:lo },
-                    segPoly: clip.poly   // null = rectangle, otherwise exact polygon
-                });
+            for (let vi = 0; vi < vCuts.length - 1; vi++) {
+                for (let hj = 0; hj < hCuts.length - 1; hj++) {
+                    const xLo = vCuts[vi], xHi = vCuts[vi+1];
+                    const yLo = hCuts[hj], yHi = hCuts[hj+1];
+                    const basePoly = shapeLocalPolyInches(s);
+                    let clipped = clipPolyToStrip(basePoly, xLo, xHi, true);
+                    clipped = clipPolyToStrip(clipped, yLo, yHi, false);
+                    if (clipped.length < 3) continue;
+                    const xs = clipped.map(p=>p[0]), ys = clipped.map(p=>p[1]);
+                    const minX=Math.min(...xs), maxX=Math.max(...xs);
+                    const minY=Math.min(...ys), maxY=Math.max(...ys);
+                    const poly = clipped.map(([x,y]) => [+(x-minX).toFixed(6), +(y-minY).toFixed(6)]);
+                    const segW = +(maxX-minX).toFixed(6), segH = +(maxY-minY).toFixed(6);
+                    const isRect = poly.length===4 &&
+                        poly.every(([x,y]) => (Math.abs(x)<1e-4||Math.abs(x-segW)<1e-4) &&
+                                               (Math.abs(y)<1e-4||Math.abs(y-segH)<1e-4));
+                    out.push({ pageIdx:pi, shapeIdx:si,
+                        label:`${baseLabel}-${SEG_LETTERS[segCount]||segCount+1}`,
+                        pageLabel,
+                        wi: segW, hi: segH,
+                        shapeType:'rect', segIdx:segCount,
+                        segOffset:{ fromX:xLo, fromY:yLo, toX:xHi, toY:yHi },
+                        segPoly: isRect ? null : poly
+                    });
+                    segCount++;
+                }
             }
         });
     });
@@ -4854,17 +4873,15 @@ function slabDrawSlab(ctx, sd, idx, ox, oy, sc, mockupMode) {
                 const segOff = p.ref.segOffset;
                 let maskNW=true, maskNE=true, maskSE=true, maskSW=true;
                 if (segOff && shape) {
-                    const totalDim = segOff.axis === 'v' ? shape.w/INCH : shape.h/INCH;
-                    const stripEnd = segOff.from + (segOff.axis === 'v' ? p.ref.wi : p.ref.hi);
-                    const isFirst = Math.abs(segOff.from) < 1e-4;
-                    const isLast  = Math.abs(stripEnd - totalDim) < 0.01;
-                    if (segOff.axis === 'v') {
-                        if (!isFirst) { maskNW=false; maskSW=false; }
-                        if (!isLast)  { maskNE=false; maskSE=false; }
-                    } else {
-                        if (!isFirst) { maskNW=false; maskNE=false; }
-                        if (!isLast)  { maskSW=false; maskSE=false; }
-                    }
+                    const totalW = shape.w/INCH, totalH = shape.h/INCH;
+                    const isFirstX = Math.abs(segOff.fromX) < 1e-4;
+                    const isLastX  = Math.abs(segOff.toX - totalW) < 0.01;
+                    const isFirstY = Math.abs(segOff.fromY) < 1e-4;
+                    const isLastY  = Math.abs(segOff.toY - totalH) < 0.01;
+                    maskNW = isFirstX && isFirstY;
+                    maskNE = isLastX  && isFirstY;
+                    maskSE = isLastX  && isLastY;
+                    maskSW = isFirstX && isLastY;
                 }
 
                 let effR  = { nw: maskNW?cvt(r.nw):0,  ne: maskNE?cvt(r.ne):0,  se: maskSE?cvt(r.se):0,  sw: maskSW?cvt(r.sw):0  };
@@ -6766,7 +6783,7 @@ function kitBuildPath(ctx, p, px, py, sc, rotOverride) {
         const cvt=v=>v/INCH*sc;
         const segOff=p.ref.segOffset;
         let mNW=true,mNE=true,mSE=true,mSW=true;
-        if(segOff&&shape){const tot=segOff.axis==='v'?shape.w/INCH:shape.h/INCH;const end=segOff.from+(segOff.axis==='v'?p.ref.wi:p.ref.hi);const isF=Math.abs(segOff.from)<1e-4,isL=Math.abs(end-tot)<0.01;if(segOff.axis==='v'){if(!isF){mNW=false;mSW=false;}if(!isL){mNE=false;mSE=false;}}else{if(!isF){mNW=false;mNE=false;}if(!isL){mSW=false;mSE=false;}}}
+        if(segOff&&shape){const totalW=shape.w/INCH,totalH=shape.h/INCH;const isFX=Math.abs(segOff.fromX)<1e-4,isLX=Math.abs(segOff.toX-totalW)<0.01;const isFY=Math.abs(segOff.fromY)<1e-4,isLY=Math.abs(segOff.toY-totalH)<0.01;mNW=isFX&&isFY;mNE=isLX&&isFY;mSE=isLX&&isLY;mSW=isFX&&isLY;}
         let eR={nw:mNW?cvt(r.nw):0,ne:mNE?cvt(r.ne):0,se:mSE?cvt(r.se):0,sw:mSW?cvt(r.sw):0};
         let eCh={nw:mNW?cvt(ch.nw):0,ne:mNE?cvt(ch.ne):0,se:mSE?cvt(ch.se):0,sw:mSW?cvt(ch.sw):0};
         let eChB={nw:mNW?cvt(chB.nw):0,ne:mNE?cvt(chB.ne):0,se:mSE?cvt(chB.se):0,sw:mSW?cvt(chB.sw):0};
