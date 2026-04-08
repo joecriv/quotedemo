@@ -241,12 +241,14 @@
         <div class="toolbar">
             <button class="tool-btn active" id="btn-draw"    title="Draw Rectangle (R)">▭ Rectangle</button>
             <button class="tool-btn"        id="btn-ldraw"   title="Draw L-Shape">⌐ L-Shape</button>
+            <button class="tool-btn"        id="btn-udraw"   title="Draw U-Shape">⊔ U-Shape</button>
             <button class="tool-btn"        id="btn-bsp"     title="Draw Backsplash (T-shape)">⊤ Backsplash</button>
             <button class="tool-btn"        id="btn-circle"  title="Draw Circle">◯ Circle</button>
             <button class="tool-btn"        id="btn-select"  title="Select / Move (S)">↖ Select</button>
             <div class="tool-sep"></div>
             <button class="tool-btn"        id="btn-radius"  title="Add Corner Radius">⌒ Radius</button>
             <button class="tool-btn"        id="btn-edge"    title="Assign Edge Profile">┤ Edge Profile</button>
+            <button class="tool-btn"        id="btn-splitedge" title="Split Edge into Segments">✂ Split Edge</button>
             <button class="tool-btn"        id="btn-joint"   title="Insert Joint Line">⋮ Joint</button>
             <button class="tool-btn"        id="btn-text"    title="Add Text Annotation">T Text</button>
             <button class="tool-btn"        id="btn-measure" title="Measurement Tool">↔ Mesure</button>
@@ -262,7 +264,11 @@
 
         <div id="edge-palette">
             <label>Active Profile:</label>
-            <button class="ep-btn ep-active" data-etype="polished" style="color:#dd0000">POL</button>
+            <button class="ep-btn ep-active" data-etype="pencil" style="color:#dd0000">PEN</button>
+            <button class="ep-btn" data-etype="ogee" style="color:#cc44cc">OGE</button>
+            <button class="ep-btn" data-etype="bullnose" style="color:#0088dd">BN</button>
+            <button class="ep-btn" data-etype="halfbull" style="color:#00aa66">HBN</button>
+            <button class="ep-btn" data-etype="bevel" style="color:#dd8800">BEV</button>
             <button class="ep-btn" data-etype="mitered" style="color:#7a3000">MT</button>
             <button class="ep-btn" data-etype="special" style="color:#228B22">SF</button>
             <button class="ep-btn" data-etype="waterfall" style="color:#006688">WF</button>
@@ -437,6 +443,26 @@
     <div class="pop-btns"><button class="pop-ok" id="lshape-ok">Add Piece</button><button class="pop-cancel" id="lshape-cancel">Cancel</button></div>
 </div>
 
+<div id="ushape-popup" class="popup-box" style="min-width:290px">
+    <h3 id="ushape-title">U-Shape Dimensions</h3>
+    <canvas id="ushape-diagram" width="220" height="140" style="display:block;margin:0 auto 8px;background:#141414;border-radius:3px;border:1px solid #333333;"></canvas>
+    <div class="toggle-row">
+        <button class="tog-btn active" id="ushape-top"    title="Opening top">⊔ Top</button>
+        <button class="tog-btn"        id="ushape-bottom" title="Opening bottom">⊓ Bottom</button>
+        <button class="tog-btn"        id="ushape-left"   title="Opening left">⊏ Left</button>
+        <button class="tog-btn"        id="ushape-right"  title="Opening right">⊐ Right</button>
+    </div>
+    <div class="ls-fields">
+        <div class="ls-field"><span class="ls-lbl">W</span><input class="ls-inp" id="us-W" type="number" min="1" max="480" step="0.5"><span class="ls-unit">"</span></div>
+        <div class="ls-field"><span class="ls-lbl">H</span><input class="ls-inp" id="us-H" type="number" min="1" max="360" step="0.5"><span class="ls-unit">"</span></div>
+        <div class="ls-field"><span class="ls-lbl">LW</span><input class="ls-inp" id="us-LW" type="number" min="0.5" max="240" step="0.5"><span class="ls-unit">"</span></div>
+        <div class="ls-field"><span class="ls-lbl">RW</span><input class="ls-inp" id="us-RW" type="number" min="0.5" max="240" step="0.5"><span class="ls-unit">"</span></div>
+        <div class="ls-field"><span class="ls-lbl">CH</span><input class="ls-inp" id="us-CH" type="number" min="0.5" max="240" step="0.5"><span class="ls-unit">"</span></div>
+    </div>
+    <div class="pop-hint">W=total width, H=total height, LW=left wall, RW=right wall, CH=channel depth</div>
+    <div class="pop-btns"><button class="pop-ok" id="ushape-ok">Add Piece</button><button class="pop-cancel" id="ushape-cancel">Cancel</button></div>
+</div>
+
 <div id="text-popup" class="popup-box" style="min-width:220px">
     <h3>Add Text</h3>
     <div class="pop-row"><label>Text</label><input id="text-content" type="text" placeholder="Label / note..." style="width:150px"></div>
@@ -485,7 +511,11 @@
         <label>Profile</label>
         <select id="edge-type-sel">
             <option value="none">None / Default</option>
-            <option value="polished">Polished Edge (POL)</option>
+            <option value="pencil">Pencil Edge (PEN)</option>
+            <option value="ogee">Ogee Edge (OGE)</option>
+            <option value="bullnose">Bullnose Edge (BN)</option>
+            <option value="halfbull">Half Bullnose (HBN)</option>
+            <option value="bevel">Bevel Edge (BEV)</option>
             <option value="mitered">Mitered Edge (MT)</option>
             <option value="special">Special Finish (SF)</option>
             <option value="joint">Joint Edge (JT)</option>
@@ -494,6 +524,20 @@
     </div>
     <div id="miter-width-row" class="pop-row" style="display:none"><label>Miter width <span>(in)</span></label><input type="number" id="miter-width-val" placeholder="e.g. 3" min="0.5" max="12" step="0.25"></div>
     <div class="pop-btns"><button class="pop-ok" id="edge-ok">Set Profile</button><button class="pop-cancel" id="edge-cancel">Cancel</button></div>
+</div>
+
+<div id="split-edge-popup" class="popup-box" style="min-width:270px">
+    <h3>Split Edge</h3>
+    <div class="pop-row"><label>Edge</label><span id="split-edge-lbl" style="color:#c8c0b0;font-weight:700;font-size:13px">—</span></div>
+    <div class="pop-row"><label>Total length</label><span id="split-edge-len" style="color:#888;font-size:11px">—</span></div>
+    <div id="edge-seg-list" style="display:flex;flex-direction:column;gap:4px;max-height:200px;overflow-y:auto"></div>
+    <div id="edge-seg-warn" style="color:#e05c5c;font-size:10px;min-height:14px;margin-top:2px"></div>
+    <button id="edge-seg-add" style="margin-top:4px;background:#333;border:1px solid #555;color:#c8c0b0;border-radius:3px;padding:3px 8px;font-size:10px;cursor:pointer">+ Add Segment</button>
+    <div style="margin-top:6px;display:flex;gap:6px">
+        <button class="pop-ok" id="split-edge-ok" style="flex:1">Save Segments</button>
+        <button class="pop-cancel" id="split-edge-revert" style="flex:none;font-size:10px">Revert to Full</button>
+        <button class="pop-cancel" id="split-edge-cancel">Cancel</button>
+    </div>
 </div>
 
 <div id="bsp-popup" class="popup-box" style="min-width:290px">
@@ -630,13 +674,19 @@ const EDGE_THRESH   = 16;
 const JOINT_THRESH  = 6;
 
 const EDGE_DEFS = {
-    none:      { abbr: null,  label: 'None',           color: '#888'    },
-    polished:  { abbr: 'POL', label: 'Polished Edge',  color: '#dd0000' },
-    mitered:   { abbr: 'MT',  label: 'Mitered Edge',   color: '#7a3000' },
-    special:   { abbr: 'SF',  label: 'Special Finish', color: '#228B22' },
-    joint:     { abbr: 'JT',  label: 'Joint Edge',     color: '#e0457b' },
-    waterfall: { abbr: 'WF',  label: 'Waterfall Edge', color: '#006688' },
+    none:      { abbr: null,   label: 'None',              color: '#888'    },
+    pencil:    { abbr: 'PEN',  label: 'Pencil Edge',       color: '#dd0000' },
+    ogee:      { abbr: 'OGE',  label: 'Ogee Edge',         color: '#cc44cc' },
+    bullnose:  { abbr: 'BN',   label: 'Bullnose Edge',     color: '#0088dd' },
+    halfbull:  { abbr: 'HBN',  label: 'Half Bullnose',     color: '#00aa66' },
+    bevel:     { abbr: 'BEV',  label: 'Bevel Edge',        color: '#dd8800' },
+    mitered:   { abbr: 'MT',   label: 'Mitered Edge',      color: '#7a3000' },
+    special:   { abbr: 'SF',   label: 'Special Finish',    color: '#228B22' },
+    joint:     { abbr: 'JT',   label: 'Joint Edge',        color: '#e0457b' },
+    waterfall: { abbr: 'WF',   label: 'Waterfall Edge',    color: '#006688' },
 };
+// All polished subtypes — used for pricing (all use same polish rate)
+const POLISHED_TYPES = new Set(['pencil','ogee','bullnose','halfbull','bevel','polished']);
 
 // ─────────────────────────────────────────────────────────────
 //  State
@@ -677,7 +727,7 @@ let jointOrientation  = 'v';
 let hovCorner     = null;
 let hovEdge       = null;
 let hovCornerEdge = null;  // { s, key, px, py } for corner arc hover in edge mode
-let activeEdgeType = 'polished';
+let activeEdgeType = 'pencil';
 let chamferPickState = null; // { s, key, step:1|2, edgeA, edgeB, pt1, pt1Edge, hoverPt }
 let selectedJoint = null;    // { s, j }
 let draggingJoint = false;
@@ -727,6 +777,12 @@ function normalizeShape(s) {
         base.notchH      = s.notchH      || 0;
         base.notchCorner = s.notchCorner || 'ne';
         base.edges = s.edges || { seg0:{type:'none'}, seg1:{type:'none'}, seg2:{type:'none'}, seg3:{type:'none'}, seg4:{type:'none'}, seg5:{type:'none'} };
+    } else if (base.shapeType === 'u') {
+        base.leftW    = s.leftW    || 0;
+        base.rightW   = s.rightW   || 0;
+        base.channelH = s.channelH || 0;
+        base.uOpening = s.uOpening || 'top';
+        base.edges = s.edges || { seg0:{type:'none'}, seg1:{type:'none'}, seg2:{type:'none'}, seg3:{type:'none'}, seg4:{type:'none'}, seg5:{type:'none'}, seg6:{type:'none'}, seg7:{type:'none'} };
     } else if (base.shapeType === 'bsp') {
         base.edges = s.edges || { seg0:{type:'none'}, seg1:{type:'none'}, seg2:{type:'none'}, seg3:{type:'none'}, seg4:{type:'none'}, seg5:{type:'none'}, seg6:{type:'none'}, seg7:{type:'none'} };
     } else if (base.shapeType === 'circle') {
@@ -769,6 +825,21 @@ function shapeChamfersB(s) {
 
 // Returns the two edge rays adjacent to a corner, used for chamfer 2-point picking
 function getChamferPickEdges(s, key) {
+    if (key.startsWith('uc')) {
+        const i = parseInt(key.replace('uc', ''));
+        const pts = uShapePolygon(s);
+        const n = pts.length;
+        const curr = pts[i];
+        const prev = pts[(i - 1 + n) % n];
+        const next = pts[(i + 1) % n];
+        const len1 = Math.hypot(curr[0]-prev[0], curr[1]-prev[1]);
+        const len2 = Math.hypot(next[0]-curr[0], next[1]-curr[1]);
+        return {
+            cornerX: curr[0], cornerY: curr[1],
+            edgeA: { ox:curr[0], oy:curr[1], dx:(prev[0]-curr[0])/(len1||1), dy:(prev[1]-curr[1])/(len1||1), maxDist:len1 },
+            edgeB: { ox:curr[0], oy:curr[1], dx:(next[0]-curr[0])/(len2||1), dy:(next[1]-curr[1])/(len2||1), maxDist:len2 },
+        };
+    }
     if (key.startsWith('lc')) {
         const i = parseInt(key.replace('lc', ''));
         const pts = lShapePolygon(s);
@@ -814,6 +885,8 @@ function snapMeasurePoint(mx, my) {
         const candidates = [];
         if (s.shapeType === 'l') {
             for (const pt of lShapePolygon(s)) candidates.push([pt[0], pt[1]]);
+        } else if (s.shapeType === 'u') {
+            for (const pt of uShapePolygon(s)) candidates.push([pt[0], pt[1]]);
         } else if (s.shapeType === 'bsp') {
             for (const pt of bspPolygon(s))  candidates.push([pt[0], pt[1]]);
         } else if (s.shapeType === 'circle') {
@@ -1000,6 +1073,34 @@ function lShapeSides(s) {
     });
 }
 // ─────────────────────────────────────────────────────────────
+//  U-Shape helpers
+// ─────────────────────────────────────────────────────────────
+function uShapePolygon(s) {
+    const { x, y, w, h } = s;
+    const lW = s.leftW || 0, rW = s.rightW || 0, cH = s.channelH || 0;
+    switch (s.uOpening || 'top') {
+        case 'top':    return [[x,y+h],[x,y],[x+lW,y],[x+lW,y+cH],[x+w-rW,y+cH],[x+w-rW,y],[x+w,y],[x+w,y+h]];
+        case 'bottom': return [[x,y],[x+w,y],[x+w,y+h],[x+w-rW,y+h],[x+w-rW,y+h-cH],[x+lW,y+h-cH],[x+lW,y+h],[x,y+h]];
+        case 'right':  return [[x,y],[x+w,y],[x+w,y+lW],[x+w-cH,y+lW],[x+w-cH,y+h-rW],[x+w,y+h-rW],[x+w,y+h],[x,y+h]];
+        case 'left':   return [[x+w,y],[x+w,y+h],[x,y+h],[x,y+h-rW],[x+cH,y+h-rW],[x+cH,y+lW],[x,y+lW],[x,y]];
+    }
+}
+const U_SIDE_LABELS = {
+    top:    ['Bottom','Left','Left Inner','Channel Floor','Right Inner','Right','Top','Back'],
+    bottom: ['Top','Right','Right Inner','Channel Floor','Left Inner','Left','Bottom','Back'],
+    right:  ['Left','Top','Top Inner','Channel Floor','Bottom Inner','Bottom','Right','Back'],
+    left:   ['Right','Bottom','Bottom Inner','Channel Floor','Top Inner','Top','Left','Back'],
+};
+function uShapeSides(s) {
+    const pts = uShapePolygon(s);
+    const labels = U_SIDE_LABELS[s.uOpening || 'top'];
+    return pts.map((p, i) => {
+        const j = (i+1) % 8;
+        return { key:`seg${i}`, label:labels[i], x1:p[0], y1:p[1], x2:pts[j][0], y2:pts[j][1] };
+    });
+}
+
+// ─────────────────────────────────────────────────────────────
 //  BSP (Backsplash T-shape) helpers
 // ─────────────────────────────────────────────────────────────
 function bspPolygon(s) {
@@ -1127,6 +1228,7 @@ function load() {
 // ─────────────────────────────────────────────────────────────
 function handles(s) {
     if (s.shapeType === 'l') return [];
+    if (s.shapeType === 'u') return [];
     if (s.shapeType === 'circle') return [];
     const { x, y, w, h } = s;
     return [
@@ -1146,7 +1248,13 @@ function hitShape(mx, my) {
         if (s.shapeType === 'l') {
             const poly = lShapePolygon(s);
             if (pointInPolygon(mx, my, poly)) return s;
-            // Also hit if clicking near any border line
+            for (let i = 0; i < poly.length; i++) {
+                const j = (i+1) % poly.length;
+                if (distToSegment(mx, my, poly[i][0], poly[i][1], poly[j][0], poly[j][1]) <= EDGE_THRESH) return s;
+            }
+        } else if (s.shapeType === 'u') {
+            const poly = uShapePolygon(s);
+            if (pointInPolygon(mx, my, poly)) return s;
             for (let i = 0; i < poly.length; i++) {
                 const j = (i+1) % poly.length;
                 if (distToSegment(mx, my, poly[i][0], poly[i][1], poly[j][0], poly[j][1]) <= EDGE_THRESH) return s;
@@ -1180,6 +1288,14 @@ function nearestCorner(mx, my) {
             });
             continue;
         }
+        if (s.shapeType === 'u') {
+            const poly = uShapePolygon(s);
+            poly.forEach(([px, py], i) => {
+                const d = Math.hypot(mx-px, my-py);
+                if (d < bestD) { bestD = d; best = { s, key:`uc${i}`, label: `U${i}`, px, py }; }
+            });
+            continue;
+        }
         for (const [key, px, py] of [['nw',s.x,s.y],['ne',s.x+s.w,s.y],['se',s.x+s.w,s.y+s.h],['sw',s.x,s.y+s.h]]) {
             const d = Math.hypot(mx-px, my-py);
             if (d < bestD) { bestD = d; best = { s, key, px, py }; }
@@ -1204,10 +1320,16 @@ function nearestEdge(mx, my) {
             const lverts = lShapeVerts(s);
             for (let i = 0; i < lverts.length; i++) {
                 const nv = lverts[i];
-                if (nv.t <= 0 || nv.r > 0) continue;  // skip if no chamfer or it's a round corner
+                if (nv.t <= 0 || nv.r > 0) continue;
                 const dk = `diag_lc${i}`;
                 const d = distToSegment(mx, my, nv.pin[0], nv.pin[1], nv.pout[0], nv.pout[1]);
                 if (d < bestD) { bestD = d; best = { s, key:dk, label:'Chanfrein L'+i, x1:nv.pin[0], y1:nv.pin[1], x2:nv.pout[0], y2:nv.pout[1] }; }
+            }
+        } else if (s.shapeType === 'u') {
+            const sides = uShapeSides(s);
+            for (const sd of sides) {
+                const d = distToSegment(mx, my, sd.x1, sd.y1, sd.x2, sd.y2);
+                if (d < bestD) { bestD = d; best = { s, key:sd.key, label:sd.label, x1:sd.x1, y1:sd.y1, x2:sd.x2, y2:sd.y2 }; }
             }
         } else if (s.shapeType === 'bsp') {
             const sides = bspSides(s);
@@ -1252,7 +1374,7 @@ function nearestEdge(mx, my) {
 function nearestCornerForEdge(mx, my) {
     const THRESH = 18;
     for (const s of shapes) {
-        if (s.shapeType === 'l' || s.shapeType === 'bsp' || s.shapeType === 'circle') continue;
+        if (s.shapeType === 'l' || s.shapeType === 'u' || s.shapeType === 'bsp' || s.shapeType === 'circle') continue;
         const r = shapeRadii(s);
         const corners = [
             { key:'nw', cx:s.x+r.nw,     cy:s.y+r.nw,     startA:Math.PI,       endA:1.5*Math.PI, r:r.nw },
@@ -1324,8 +1446,36 @@ function drawBorderSegment(gctx, type, x1, y1, x2, y2, sel) {
         gctx.lineWidth = sel ? 2 : 0.8;
         gctx.beginPath(); gctx.moveTo(x1,y1); gctx.lineTo(x2,y2); gctx.stroke();
 
-    } else if (type === 'polished') {
+    } else if (type === 'pencil' || type === 'polished') {
         gctx.strokeStyle = '#dd0000'; gctx.lineWidth = 2.5;
+        gctx.beginPath(); gctx.moveTo(x1,y1); gctx.lineTo(x2,y2); gctx.stroke();
+
+    } else if (type === 'ogee') {
+        // Wavy line
+        gctx.translate(x1, y1); gctx.rotate(Math.atan2(y2-y1, x2-x1));
+        gctx.strokeStyle = '#cc44cc'; gctx.lineWidth = 2.5;
+        gctx.beginPath(); gctx.moveTo(0, 0);
+        for (let i = 0; i < len; i += 12) { gctx.quadraticCurveTo(i+3, -3, i+6, 0); gctx.quadraticCurveTo(i+9, 3, i+12, 0); }
+        gctx.stroke();
+
+    } else if (type === 'bullnose') {
+        // Thick rounded line
+        gctx.strokeStyle = '#0088dd'; gctx.lineWidth = 4; gctx.lineCap = 'round';
+        gctx.beginPath(); gctx.moveTo(x1,y1); gctx.lineTo(x2,y2); gctx.stroke();
+
+    } else if (type === 'halfbull') {
+        // Double line
+        const nx = -(y2-y1)/len, ny = (x2-x1)/len;
+        gctx.strokeStyle = '#00aa66'; gctx.lineWidth = 2;
+        gctx.beginPath(); gctx.moveTo(x1,y1); gctx.lineTo(x2,y2); gctx.stroke();
+        gctx.lineWidth = 1; gctx.globalAlpha = 0.5;
+        gctx.beginPath(); gctx.moveTo(x1+nx*3,y1+ny*3); gctx.lineTo(x2+nx*3,y2+ny*3); gctx.stroke();
+        gctx.globalAlpha = 1;
+
+    } else if (type === 'bevel') {
+        // Dash-dot pattern
+        gctx.strokeStyle = '#dd8800'; gctx.lineWidth = 2.5;
+        gctx.setLineDash([8, 3, 2, 3]);
         gctx.beginPath(); gctx.moveTo(x1,y1); gctx.lineTo(x2,y2); gctx.stroke();
 
     } else if (type === 'mitered') {
@@ -1353,6 +1503,56 @@ function drawBorderSegment(gctx, type, x1, y1, x2, y2, sel) {
         }
     }
     gctx.restore();
+}
+
+// Draw a segmented edge: splits the line x1,y1→x2,y2 into portions per segment
+function drawSegmentedEdge(gctx, edge, x1, y1, x2, y2, sel, edgeKey) {
+    if (!edge || edge.type !== 'segmented' || !edge.segments?.length) return;
+    const totalLen = Math.hypot(x2-x1, y2-y1);
+    if (totalLen < 1) return;
+    const dx = (x2-x1)/totalLen, dy = (y2-y1)/totalLen;
+    // normal vector pointing outward (for label placement)
+    let nx, ny, ALOFF = 14;
+    if (edgeKey === 'top')    { nx=0; ny=-1; }
+    else if (edgeKey === 'bottom') { nx=0; ny=1; }
+    else if (edgeKey === 'left')   { nx=-1; ny=0; }
+    else if (edgeKey === 'right')  { nx=1; ny=0; }
+    else { nx = -dy; ny = dx; } // generic: perpendicular outward
+
+    let cursor = 0;
+    for (let i = 0; i < edge.segments.length; i++) {
+        const seg = edge.segments[i];
+        const segPx = seg.length * INCH;
+        const sx = x1 + dx * cursor, sy = y1 + dy * cursor;
+        const ex = x1 + dx * Math.min(cursor + segPx, totalLen), ey = y1 + dy * Math.min(cursor + segPx, totalLen);
+        // Draw the segment profile
+        drawBorderSegment(gctx, seg.profile, sx, sy, ex, ey, sel);
+        // Label: abbreviation + length
+        const def = EDGE_DEFS[seg.profile];
+        if (def?.abbr) {
+            const mx = (sx+ex)/2, my = (sy+ey)/2;
+            const lx = mx + nx * ALOFF, ly = my + ny * ALOFF;
+            gctx.save();
+            gctx.font = 'bold 8px Raleway,sans-serif';
+            gctx.textAlign = 'center'; gctx.textBaseline = 'middle';
+            gctx.lineWidth = 3; gctx.strokeStyle = 'rgba(255,255,255,0.85)';
+            const txt = `${def.abbr} ${seg.length}"`;
+            gctx.strokeText(txt, lx, ly); gctx.fillStyle = def.color; gctx.fillText(txt, lx, ly);
+            gctx.restore();
+        }
+        cursor += segPx;
+        // Tick mark between segments (not after last)
+        if (i < edge.segments.length - 1 && cursor < totalLen) {
+            const tx = x1 + dx * cursor, ty = y1 + dy * cursor;
+            gctx.save();
+            gctx.strokeStyle = '#c8c0b0'; gctx.lineWidth = 1.5; gctx.setLineDash([]);
+            gctx.beginPath();
+            gctx.moveTo(tx - ny*5, ty + nx*5);
+            gctx.lineTo(tx + ny*5, ty - nx*5);
+            gctx.stroke();
+            gctx.restore();
+        }
+    }
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -1516,19 +1716,24 @@ function drawLShape(s, sel) {
     for (let i = 0; i < n; i++) {
         const v = verts[i], nv = verts[(i+1)%n];
         const key = `seg${i}`;
-        const etype = s.edges?.[key]?.type || 'none';
-        drawBorderSegment(ctx, etype, v.pout[0], v.pout[1], nv.pin[0], nv.pin[1], sel);
-        if (etype !== 'none') {
-            const def = EDGE_DEFS[etype];
-            if (def?.abbr) {
-                const mx=(v.pout[0]+nv.pin[0])/2, my=(v.pout[1]+nv.pin[1])/2;
-                const dx=nv.pin[0]-v.pout[0], dy=nv.pin[1]-v.pout[1], len=Math.hypot(dx,dy)||1;
-                const lx=mx+(dy/len)*14, ly=my+(-dx/len)*14;
-                ctx.save(); ctx.font='bold 9px Raleway,sans-serif';
-                ctx.textAlign='center'; ctx.textBaseline='middle';
-                ctx.lineWidth=3; ctx.strokeStyle='rgba(255,255,255,0.85)';
-                ctx.strokeText(def.abbr,lx,ly); ctx.fillStyle=def.color; ctx.fillText(def.abbr,lx,ly);
-                ctx.restore();
+        const edgeData = s.edges?.[key];
+        if (edgeData?.type === 'segmented' && edgeData.segments?.length) {
+            drawSegmentedEdge(ctx, edgeData, v.pout[0], v.pout[1], nv.pin[0], nv.pin[1], sel, key);
+        } else {
+            const etype = edgeData?.type || 'none';
+            drawBorderSegment(ctx, etype, v.pout[0], v.pout[1], nv.pin[0], nv.pin[1], sel);
+            if (etype !== 'none') {
+                const def = EDGE_DEFS[etype];
+                if (def?.abbr) {
+                    const mx=(v.pout[0]+nv.pin[0])/2, my=(v.pout[1]+nv.pin[1])/2;
+                    const dx=nv.pin[0]-v.pout[0], dy=nv.pin[1]-v.pout[1], len=Math.hypot(dx,dy)||1;
+                    const lx=mx+(dy/len)*14, ly=my+(-dx/len)*14;
+                    ctx.save(); ctx.font='bold 9px Raleway,sans-serif';
+                    ctx.textAlign='center'; ctx.textBaseline='middle';
+                    ctx.lineWidth=3; ctx.strokeStyle='rgba(255,255,255,0.85)';
+                    ctx.strokeText(def.abbr,lx,ly); ctx.fillStyle=def.color; ctx.fillText(def.abbr,lx,ly);
+                    ctx.restore();
+                }
             }
         }
         // Draw corner treatment at nv
@@ -1584,6 +1789,46 @@ function drawLShape(s, sel) {
     }
 }
 
+function drawUShape(s, sel) {
+    const pts = uShapePolygon(s);
+    const fill = sel ? 'rgba(201,168,76,0.12)' : 'rgba(218,230,248,0.88)';
+    ctx.save();
+    ctx.beginPath(); ctx.moveTo(pts[0][0],pts[0][1]);
+    for (let i=1;i<pts.length;i++) ctx.lineTo(pts[i][0],pts[i][1]);
+    ctx.closePath(); ctx.fillStyle=fill; ctx.fill(); ctx.restore();
+    const sides = uShapeSides(s);
+    for (const sd of sides) {
+        const edgeData = s.edges?.[sd.key];
+        if (edgeData?.type === 'segmented' && edgeData.segments?.length) {
+            drawSegmentedEdge(ctx, edgeData, sd.x1, sd.y1, sd.x2, sd.y2, sel, sd.key);
+        } else {
+            const etype = edgeData?.type || 'none';
+            drawBorderSegment(ctx, etype, sd.x1, sd.y1, sd.x2, sd.y2, sel);
+            if (etype !== 'none') {
+                const def = EDGE_DEFS[etype];
+                if (def?.abbr) {
+                    const mx=(sd.x1+sd.x2)/2, my=(sd.y1+sd.y2)/2;
+                    const dx=sd.x2-sd.x1, dy=sd.y2-sd.y1, len=Math.hypot(dx,dy)||1;
+                    const lx=mx+(dy/len)*14, ly=my+(-dx/len)*14;
+                    ctx.save(); ctx.font='bold 9px Raleway,sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+                    ctx.lineWidth=3; ctx.strokeStyle='rgba(255,255,255,0.85)';
+                    ctx.strokeText(def.abbr,lx,ly); ctx.fillStyle=def.color; ctx.fillText(def.abbr,lx,ly); ctx.restore();
+                }
+            }
+        }
+    }
+    for (let i=0;i<8;i++) {
+        const j=(i+1)%8;
+        drawDimLine(pts[i][0],pts[i][1],pts[j][0],pts[j][1], Math.hypot(pts[j][0]-pts[i][0],pts[j][1]-pts[i][1]), s.id, `dim_u${i}`);
+    }
+    if (sel) {
+        ctx.save(); ctx.strokeStyle='#c8c0b0'; ctx.lineWidth=2; ctx.setLineDash([3,3]);
+        ctx.beginPath(); ctx.moveTo(pts[0][0],pts[0][1]);
+        for (let i=1;i<pts.length;i++) ctx.lineTo(pts[i][0],pts[i][1]);
+        ctx.closePath(); ctx.stroke(); ctx.setLineDash([]); ctx.restore();
+    }
+}
+
 function drawBSP(s, sel) {
     const pts = bspPolygon(s);
     // Fill
@@ -1595,17 +1840,22 @@ function drawBSP(s, sel) {
     // Border — 8 sides
     const sides = bspSides(s);
     for (const sd of sides) {
-        const etype = s.edges?.[sd.key]?.type || 'none';
-        drawBorderSegment(ctx, etype, sd.x1, sd.y1, sd.x2, sd.y2, sel);
-        if (etype !== 'none') {
-            const def = EDGE_DEFS[etype];
-            if (def?.abbr) {
-                const mx=(sd.x1+sd.x2)/2, my=(sd.y1+sd.y2)/2;
-                const dx=sd.x2-sd.x1, dy=sd.y2-sd.y1, len=Math.hypot(dx,dy)||1;
-                const lx=mx+(dy/len)*14, ly=my+(-dx/len)*14;
-                ctx.save(); ctx.font='bold 9px Raleway,sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
-                ctx.lineWidth=3; ctx.strokeStyle='rgba(255,255,255,0.85)';
-                ctx.strokeText(def.abbr,lx,ly); ctx.fillStyle=def.color; ctx.fillText(def.abbr,lx,ly); ctx.restore();
+        const edgeData = s.edges?.[sd.key];
+        if (edgeData?.type === 'segmented' && edgeData.segments?.length) {
+            drawSegmentedEdge(ctx, edgeData, sd.x1, sd.y1, sd.x2, sd.y2, sel, sd.key);
+        } else {
+            const etype = edgeData?.type || 'none';
+            drawBorderSegment(ctx, etype, sd.x1, sd.y1, sd.x2, sd.y2, sel);
+            if (etype !== 'none') {
+                const def = EDGE_DEFS[etype];
+                if (def?.abbr) {
+                    const mx=(sd.x1+sd.x2)/2, my=(sd.y1+sd.y2)/2;
+                    const dx=sd.x2-sd.x1, dy=sd.y2-sd.y1, len=Math.hypot(dx,dy)||1;
+                    const lx=mx+(dy/len)*14, ly=my+(-dx/len)*14;
+                    ctx.save(); ctx.font='bold 9px Raleway,sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+                    ctx.lineWidth=3; ctx.strokeStyle='rgba(255,255,255,0.85)';
+                    ctx.strokeText(def.abbr,lx,ly); ctx.fillStyle=def.color; ctx.fillText(def.abbr,lx,ly); ctx.restore();
+                }
             }
         }
     }
@@ -1625,6 +1875,7 @@ function drawBSP(s, sel) {
 
 function drawShape(s, sel) {
     if (s.shapeType === 'l') { drawLShape(s, sel); return; }
+    if (s.shapeType === 'u') { drawUShape(s, sel); return; }
     if (s.shapeType === 'bsp') { drawBSP(s, sel); return; }
     if (s.shapeType === 'circle') {
         const r = s.w / 2, cx = s.x + r, cy = s.y + r;
@@ -1637,7 +1888,11 @@ function drawShape(s, sel) {
         ctx.save();
         ctx.setLineDash([]);
         if (arcType === 'none')      { ctx.strokeStyle = sel ? '#c8c0b0' : '#222222'; ctx.lineWidth = sel ? 2 : 0.8; }
-        else if (arcType === 'polished')  { ctx.strokeStyle = '#dd0000'; ctx.lineWidth = 2.5; }
+        else if (arcType === 'polished' || arcType === 'pencil') { ctx.strokeStyle = '#dd0000'; ctx.lineWidth = 2.5; }
+        else if (arcType === 'ogee')      { ctx.strokeStyle = '#cc44cc'; ctx.lineWidth = 2.5; }
+        else if (arcType === 'bullnose')  { ctx.strokeStyle = '#0088dd'; ctx.lineWidth = 4; }
+        else if (arcType === 'halfbull')  { ctx.strokeStyle = '#00aa66'; ctx.lineWidth = 2.5; }
+        else if (arcType === 'bevel')     { ctx.strokeStyle = '#dd8800'; ctx.lineWidth = 2.5; }
         else if (arcType === 'mitered')   { ctx.strokeStyle = '#7a3000'; ctx.lineWidth = 2; ctx.setLineDash([4,3]); }
         else if (arcType === 'special')   { ctx.strokeStyle = '#228B22'; ctx.lineWidth = 2.5; }
         else if (arcType === 'joint')     { ctx.strokeStyle = '#e0457b'; ctx.lineWidth = 2; ctx.setLineDash([5,4]); }
@@ -1728,25 +1983,29 @@ function drawShape(s, sel) {
         { key:'left',   x1:s.x,         y1:s.y+s.h-swB,  x2:s.x,          y2:s.y+nwB    },
     ];
     for (const sd of sides) {
-        const etype = s.edges?.[sd.key]?.type || 'none';
-        drawBorderSegment(ctx, etype, sd.x1, sd.y1, sd.x2, sd.y2, sel);
-        // Abbreviation label outside the shape
-        if (etype !== 'none') {
-            const def = EDGE_DEFS[etype];
-            if (def?.abbr) {
-                const mx = (sd.x1+sd.x2)/2, my = (sd.y1+sd.y2)/2;
-                let lx = mx, ly = my, ALOFF = 14;
-                if (sd.key === 'top')    ly -= ALOFF;
-                if (sd.key === 'bottom') ly += ALOFF;
-                if (sd.key === 'left')   lx -= ALOFF;
-                if (sd.key === 'right')  lx += ALOFF;
-                ctx.save();
-                ctx.font = 'bold 9px Raleway,sans-serif';
-                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-                ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(255,255,255,0.85)';
-                ctx.strokeText(def.abbr, lx, ly);
-                ctx.fillStyle = def.color; ctx.fillText(def.abbr, lx, ly);
-                ctx.restore();
+        const edgeData = s.edges?.[sd.key];
+        if (edgeData?.type === 'segmented' && edgeData.segments?.length) {
+            drawSegmentedEdge(ctx, edgeData, sd.x1, sd.y1, sd.x2, sd.y2, sel, sd.key);
+        } else {
+            const etype = edgeData?.type || 'none';
+            drawBorderSegment(ctx, etype, sd.x1, sd.y1, sd.x2, sd.y2, sel);
+            if (etype !== 'none') {
+                const def = EDGE_DEFS[etype];
+                if (def?.abbr) {
+                    const mx = (sd.x1+sd.x2)/2, my = (sd.y1+sd.y2)/2;
+                    let lx = mx, ly = my, ALOFF = 14;
+                    if (sd.key === 'top')    ly -= ALOFF;
+                    if (sd.key === 'bottom') ly += ALOFF;
+                    if (sd.key === 'left')   lx -= ALOFF;
+                    if (sd.key === 'right')  lx += ALOFF;
+                    ctx.save();
+                    ctx.font = 'bold 9px Raleway,sans-serif';
+                    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                    ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+                    ctx.strokeText(def.abbr, lx, ly);
+                    ctx.fillStyle = def.color; ctx.fillText(def.abbr, lx, ly);
+                    ctx.restore();
+                }
             }
         }
     }
@@ -1765,7 +2024,11 @@ function drawShape(s, sel) {
         ctx.save();
         if (sel && ctype === 'none') { ctx.strokeStyle = '#c8c0b0'; ctx.lineWidth = 2; ctx.setLineDash([]); }
         else if (ctype === 'none')   { ctx.strokeStyle = '#222222'; ctx.lineWidth = 0.8; ctx.setLineDash([]); }
-        else if (ctype === 'polished') { ctx.strokeStyle = '#dd0000'; ctx.lineWidth = 2.5; ctx.setLineDash([]); }
+        else if (ctype === 'polished' || ctype === 'pencil') { ctx.strokeStyle = '#dd0000'; ctx.lineWidth = 2.5; ctx.setLineDash([]); }
+        else if (ctype === 'ogee')      { ctx.strokeStyle = '#cc44cc'; ctx.lineWidth = 2.5; ctx.setLineDash([]); }
+        else if (ctype === 'bullnose')  { ctx.strokeStyle = '#0088dd'; ctx.lineWidth = 4;   ctx.setLineDash([]); }
+        else if (ctype === 'halfbull')  { ctx.strokeStyle = '#00aa66'; ctx.lineWidth = 2.5; ctx.setLineDash([]); }
+        else if (ctype === 'bevel')     { ctx.strokeStyle = '#dd8800'; ctx.lineWidth = 2.5; ctx.setLineDash([]); }
         else if (ctype === 'mitered')  { ctx.strokeStyle = '#7a3000'; ctx.lineWidth = 2;   ctx.setLineDash([4,3]); }
         else if (ctype === 'special')  { ctx.strokeStyle = '#228B22'; ctx.lineWidth = 2.5; ctx.setLineDash([]); }
         else if (ctype === 'joint')    { ctx.strokeStyle = '#e0457b'; ctx.lineWidth = 2;   ctx.setLineDash([5,4]); }
@@ -1866,8 +2129,8 @@ function drawJointLines(s) {
         const isSel = selectedJoint?.j === j;
         ctx.save();
         // Clip joint lines to the actual shape boundary
-        if (s.shapeType === 'l' || s.shapeType === 'bsp') {
-            const pts = s.shapeType === 'l' ? lShapePolygon(s) : bspPolygon(s);
+        if (s.shapeType === 'l' || s.shapeType === 'u' || s.shapeType === 'bsp') {
+            const pts = s.shapeType === 'l' ? lShapePolygon(s) : s.shapeType === 'u' ? uShapePolygon(s) : bspPolygon(s);
             ctx.beginPath();
             ctx.moveTo(pts[0][0], pts[0][1]);
             for (let i=1; i<pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
@@ -1971,10 +2234,10 @@ function drawHoverIndicators() {
         ctx.strokeStyle = '#c8c0b0'; ctx.lineWidth = 2.5; ctx.globalAlpha = 0.8; ctx.stroke();
         ctx.globalAlpha = 1; ctx.restore();
     }
-    if (tool === 'edge') {
+    if (tool === 'edge' || tool === 'splitedge') {
         if (hovEdge) {
             ctx.save();
-            ctx.strokeStyle = '#c8c0b0'; ctx.lineWidth = 4; ctx.globalAlpha = 0.5;
+            ctx.strokeStyle = tool === 'splitedge' ? '#e0a030' : '#c8c0b0'; ctx.lineWidth = 4; ctx.globalAlpha = 0.5;
             if (hovEdge.s.shapeType === 'circle') {
                 ctx.beginPath(); ctx.arc(hovEdge.cx, hovEdge.cy, hovEdge.r, 0, Math.PI * 2); ctx.stroke();
             } else {
@@ -2023,9 +2286,10 @@ function render() {
     for (let y = 0; y <= CH; y += FOOT) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(CW,y); ctx.stroke(); }
     ctx.restore();
 
-    shapes.forEach(s => drawShape(s, s.id === selected));
-    // Draw joint lines last so they appear on top of all shapes (sinks, cooktops, etc.)
-    shapes.forEach(s => drawJointLines(s));
+    // Draw regular shapes first, then sinks/cooktops/outlets on top
+    shapes.filter(s => !s.subtype).forEach(s => drawShape(s, s.id === selected));
+    shapes.filter(s => !s.subtype).forEach(s => drawJointLines(s));
+    shapes.filter(s => s.subtype).forEach(s => drawShape(s, s.id === selected));
     // Draw text annotations on top
     for (const ti of textItems) {
         const isSel = ti.id === selectedText;
@@ -2128,7 +2392,7 @@ function drawLegendSwatches() {
 //  Popup helpers
 // ─────────────────────────────────────────────────────────────
 function hideAllPopups() {
-    ['size-popup','lshape-popup','bsp-popup','circle-popup','sink-popup','radius-popup','edge-popup','joint-popup','text-popup'].forEach(id =>
+    ['size-popup','lshape-popup','ushape-popup','bsp-popup','circle-popup','sink-popup','radius-popup','edge-popup','split-edge-popup','joint-popup','text-popup'].forEach(id =>
         document.getElementById(id).style.display = 'none');
     currentPopup = null; pendingPlace = null; pendingCorner = null;
     pendingEdge = null; pendingJointShape = null; pendingJointPos = null;
@@ -2363,9 +2627,11 @@ document.getElementById('radius-val').addEventListener('keydown', e => {
 // ── Edge popup ───────────────────────────────────────────────
 const edgeTypeSel = document.getElementById('edge-type-sel');
 const RECT_EDGE_LABELS = { top:'Top', right:'Right', bottom:'Bottom', left:'Left' };
+// ── Edge popup (original — full edge only) ──────────────
 function showEdgePopup(edgeHit) {
     hideAllPopups(); pendingEdge = edgeHit;
     edgeTypeSel.value = edgeHit.s.edges?.[edgeHit.key]?.type || 'none';
+    if (edgeTypeSel.value === 'segmented') edgeTypeSel.value = 'none';
     document.getElementById('miter-width-val').value = '';
     document.getElementById('miter-width-val').style.borderColor = '';
     document.getElementById('miter-width-row').style.display = edgeTypeSel.value === 'mitered' ? 'flex' : 'none';
@@ -2384,8 +2650,6 @@ function showEdgePopup(edgeHit) {
 }
 function confirmEdgePopup() {
     if (!pendingEdge) return;
-
-    // Mitered edge — require width input
     if (edgeTypeSel.value === 'mitered') {
         const miterW = parseFloat(document.getElementById('miter-width-val').value);
         if (!miterW || miterW <= 0) {
@@ -2395,43 +2659,28 @@ function confirmEdgePopup() {
         }
         document.getElementById('miter-width-val').style.borderColor = '';
     }
-
     pushUndo();
     if (!pendingEdge.s.edges) {
         if (pendingEdge.s.shapeType === 'circle') pendingEdge.s.edges = {arc:{type:'none'}};
         else pendingEdge.s.edges = { top:{type:'none'}, right:{type:'none'}, bottom:{type:'none'}, left:{type:'none'} };
     }
     pendingEdge.s.edges[pendingEdge.key] = { type: edgeTypeSel.value };
-
-    // Mitered edge → create a strip piece alongside the edge
     if (edgeTypeSel.value === 'mitered') {
         const s = pendingEdge.s, key = pendingEdge.key;
         const miterW = parseFloat(document.getElementById('miter-width-val').value);
         const miterPx = miterW * INCH;
         let stripW, stripH, stripX, stripY;
         if (key === 'top' || key === 'bottom') {
-            stripW = s.w; stripH = miterPx;
-            stripX = s.x;
+            stripW = s.w; stripH = miterPx; stripX = s.x;
             stripY = key === 'top' ? s.y - miterPx - INCH/2 : s.y + s.h + INCH/2;
         } else if (key === 'left' || key === 'right') {
-            stripW = miterPx; stripH = s.h;
+            stripW = miterPx; stripH = s.h; stripY = s.y;
             stripX = key === 'left' ? s.x - miterPx - INCH/2 : s.x + s.w + INCH/2;
-            stripY = s.y;
-        } else {
-            // L-shape/BSP segments — use shape width as default length, place below
-            stripW = s.w; stripH = miterPx;
-            stripX = s.x; stripY = s.y + s.h + INCH;
-        }
-        // Clamp to canvas
-        stripX = clamp(stripX, 0, CW - stripW);
-        stripY = clamp(stripY, 0, CH - stripH);
-        shapes.push(normalizeShape({
-            id: nextId, label: `Miter Strip`, x: stripX, y: stripY, w: stripW, h: stripH,
-            miterStrip: true
-        }));
+        } else { stripW = s.w; stripH = miterPx; stripX = s.x; stripY = s.y + s.h + INCH; }
+        stripX = clamp(stripX, 0, CW - stripW); stripY = clamp(stripY, 0, CH - stripH);
+        shapes.push(normalizeShape({ id: nextId, label: 'Miter Strip', x: stripX, y: stripY, w: stripW, h: stripH, miterStrip: true }));
         nextId++;
     }
-
     persist(); hideAllPopups(); setTool('select'); render();
 }
 document.getElementById('edge-ok').addEventListener('click', confirmEdgePopup);
@@ -2458,6 +2707,125 @@ document.querySelectorAll('.ep-btn').forEach(btn => {
         activeEdgeType = btn.dataset.etype;
         document.querySelectorAll('.ep-btn').forEach(b => b.classList.toggle('ep-active', b === btn));
     });
+});
+
+// ── Split Edge tool ───────────────────────────────────────────
+let splitEdgePending = null; // { s, key, label, x1,y1,x2,y2 }
+let edgeSegments = [];
+let edgeTotalIn  = 0;
+
+function edgeProfileOptions(sel) {
+    return `<option value="none"${sel==='none'?' selected':''}>None</option>
+        <option value="pencil"${sel==='pencil'||sel==='polished'?' selected':''}>PEN</option>
+        <option value="ogee"${sel==='ogee'?' selected':''}>OGE</option>
+        <option value="bullnose"${sel==='bullnose'?' selected':''}>BN</option>
+        <option value="halfbull"${sel==='halfbull'?' selected':''}>HBN</option>
+        <option value="bevel"${sel==='bevel'?' selected':''}>BEV</option>
+        <option value="mitered"${sel==='mitered'?' selected':''}>MT</option>
+        <option value="special"${sel==='special'?' selected':''}>SF</option>
+        <option value="joint"${sel==='joint'?' selected':''}>JT</option>
+        <option value="waterfall"${sel==='waterfall'?' selected':''}>WF</option>`;
+}
+
+function edgeSegRender() {
+    const list = document.getElementById('edge-seg-list');
+    list.innerHTML = edgeSegments.map((seg, i) => `<div style="display:flex;align-items:center;gap:4px">
+        <input type="number" class="mat-input eseg-len" data-i="${i}" min="0.5" step="0.25"
+            style="width:55px;text-align:right;font-size:11px" value="${seg.length||''}" placeholder="in">
+        <select class="mat-input eseg-prof" data-i="${i}" style="flex:1;font-size:11px">${edgeProfileOptions(seg.profile)}</select>
+        ${edgeSegments.length > 2 ? `<span class="cost-remove eseg-del" data-i="${i}" style="cursor:pointer">&times;</span>` : ''}
+    </div>`).join('');
+    list.querySelectorAll('.eseg-len').forEach(inp => inp.addEventListener('input', e => {
+        edgeSegments[+e.target.dataset.i].length = parseFloat(e.target.value) || 0;
+        edgeSegValidate();
+    }));
+    list.querySelectorAll('.eseg-prof').forEach(sel => sel.addEventListener('change', e => {
+        edgeSegments[+e.target.dataset.i].profile = e.target.value;
+    }));
+    list.querySelectorAll('.eseg-del').forEach(btn => btn.addEventListener('click', e => {
+        edgeSegments.splice(+e.target.dataset.i, 1);
+        edgeSegRender(); edgeSegValidate();
+    }));
+    edgeSegValidate();
+}
+
+function edgeSegValidate() {
+    const warn = document.getElementById('edge-seg-warn');
+    const total = edgeSegments.reduce((s, seg) => s + (seg.length || 0), 0);
+    const diff = +(edgeTotalIn - total).toFixed(2);
+    if (Math.abs(diff) < 0.01) { warn.textContent = ''; }
+    else if (diff > 0) { warn.textContent = `${diff}" remaining — segments must total ${edgeTotalIn}"`; }
+    else { warn.textContent = `${Math.abs(diff)}" over — segments must total ${edgeTotalIn}"`; }
+}
+
+function showSplitEdgePopup(edgeHit) {
+    hideAllPopups(); splitEdgePending = edgeHit;
+    const existing = edgeHit.s.edges?.[edgeHit.key];
+    const isSegmented = existing?.type === 'segmented' && Array.isArray(existing?.segments);
+
+    if (edgeHit.x1 != null) {
+        edgeTotalIn = +(Math.hypot(edgeHit.x2-edgeHit.x1, edgeHit.y2-edgeHit.y1) / INCH).toFixed(2);
+    } else { edgeTotalIn = 0; }
+
+    const lbl = edgeHit.label || RECT_EDGE_LABELS[edgeHit.key] || edgeHit.key;
+    document.getElementById('split-edge-lbl').textContent = lbl;
+    document.getElementById('split-edge-len').textContent = edgeTotalIn ? edgeTotalIn + '"' : '—';
+
+    if (isSegmented) {
+        edgeSegments = existing.segments.map(s => ({ length: s.length, profile: s.profile }));
+    } else {
+        const curProfile = existing?.type || 'none';
+        const half = +(edgeTotalIn / 2).toFixed(2);
+        edgeSegments = [
+            { length: half, profile: curProfile },
+            { length: +(edgeTotalIn - half).toFixed(2), profile: curProfile }
+        ];
+    }
+    edgeSegRender();
+
+    currentPopup = 'splitedge';
+    const s = edgeHit.s;
+    let midX = s.x+s.w/2, midY = s.y+s.h/2;
+    if (s.shapeType !== 'l') {
+        midX = edgeHit.key === 'left' ? s.x : edgeHit.key === 'right' ? s.x+s.w : s.x+s.w/2;
+        midY = edgeHit.key === 'top'  ? s.y : edgeHit.key === 'bottom' ? s.y+s.h : s.y+s.h/2;
+    }
+    const sp = screenPos(midX, midY);
+    showPopupAt(document.getElementById('split-edge-popup'), sp.x - 135, sp.y - 180);
+    document.querySelector('.eseg-len')?.focus();
+}
+
+function confirmSplitEdge() {
+    if (!splitEdgePending) return;
+    const total = edgeSegments.reduce((s, seg) => s + (seg.length || 0), 0);
+    if (Math.abs(edgeTotalIn - total) > 0.05) return;
+    if (edgeSegments.some(seg => !seg.length || seg.length <= 0)) return;
+    pushUndo();
+    if (!splitEdgePending.s.edges) {
+        splitEdgePending.s.edges = { top:{type:'none'}, right:{type:'none'}, bottom:{type:'none'}, left:{type:'none'} };
+    }
+    splitEdgePending.s.edges[splitEdgePending.key] = {
+        type: 'segmented',
+        segments: edgeSegments.map(seg => ({ length: seg.length, profile: seg.profile }))
+    };
+    persist(); hideAllPopups(); setTool('select'); render();
+}
+
+function revertSplitEdge() {
+    if (!splitEdgePending) return;
+    pushUndo();
+    if (splitEdgePending.s.edges?.[splitEdgePending.key]) {
+        splitEdgePending.s.edges[splitEdgePending.key] = { type: 'none' };
+    }
+    persist(); hideAllPopups(); setTool('select'); render();
+}
+
+document.getElementById('split-edge-ok').addEventListener('click', confirmSplitEdge);
+document.getElementById('split-edge-cancel').addEventListener('click', () => hideAllPopups());
+document.getElementById('split-edge-revert').addEventListener('click', revertSplitEdge);
+document.getElementById('edge-seg-add').addEventListener('click', () => {
+    edgeSegments.push({ length: 0, profile: 'none' });
+    edgeSegRender();
 });
 
 // ── Backsplash popup ──────────────────────────────────────────
@@ -2770,6 +3138,111 @@ document.getElementById('lshape-cancel').addEventListener('click', () => { hideA
     });
 });
 
+// ── U-Shape popup ────────────────────────────────────────────
+let uShapeOpening   = 'top';
+let editingUShapeId = null;
+
+const usDiagram = document.getElementById('ushape-diagram');
+const usDiagCtx = usDiagram.getContext('2d');
+
+function setUShapeOpening(op) {
+    uShapeOpening = op;
+    ['top','bottom','left','right'].forEach(k =>
+        document.getElementById(`ushape-${k}`).classList.toggle('active', k === op));
+    drawUShapeDiagram();
+}
+['top','bottom','left','right'].forEach(k =>
+    document.getElementById(`ushape-${k}`).addEventListener('click', () => setUShapeOpening(k)));
+
+function drawUShapeDiagram() {
+    const dc = usDiagCtx, dw = usDiagram.width, dh = usDiagram.height;
+    dc.clearRect(0, 0, dw, dh);
+    const W = parseFloat(document.getElementById('us-W').value) || 0;
+    const H = parseFloat(document.getElementById('us-H').value) || 0;
+    const lW = parseFloat(document.getElementById('us-LW').value) || 0;
+    const rW = parseFloat(document.getElementById('us-RW').value) || 0;
+    const cH = parseFloat(document.getElementById('us-CH').value) || 0;
+    if (!W || !H || !lW || !rW || !cH) return;
+    const pad = 26;
+    const sc = Math.min((dw - pad*2) / W, (dh - pad*2) / H);
+    const ox = (dw - W*sc) / 2, oy = (dh - H*sc) / 2;
+    const ds = { x:ox, y:oy, w:W*sc, h:H*sc, leftW:lW*sc, rightW:rW*sc, channelH:cH*sc, uOpening:uShapeOpening };
+    const pts = uShapePolygon(ds);
+    dc.save();
+    dc.beginPath(); dc.moveTo(pts[0][0], pts[0][1]);
+    for (let i=1; i<pts.length; i++) dc.lineTo(pts[i][0], pts[i][1]);
+    dc.closePath();
+    dc.fillStyle = 'rgba(200,192,176,0.12)'; dc.fill();
+    dc.strokeStyle = '#c8c0b0'; dc.lineWidth = 1.5; dc.stroke();
+    dc.restore();
+    const labels = ['0','1','2','3','4','5','6','7'];
+    for (let i=0; i<8; i++) {
+        const j = (i+1)%8;
+        const mx=(pts[i][0]+pts[j][0])/2, my=(pts[i][1]+pts[j][1])/2;
+        const ddx=pts[j][0]-pts[i][0], ddy=pts[j][1]-pts[i][1], len=Math.hypot(ddx,ddy)||1;
+        const nx=ddy/len, ny=-ddx/len;
+        const lx=mx+nx*11, ly=my+ny*11;
+        dc.save(); dc.font='bold 8px Raleway,sans-serif'; dc.textAlign='center'; dc.textBaseline='middle';
+        dc.fillStyle='#c8c0b0'; dc.fillText(labels[i], lx, ly); dc.restore();
+    }
+}
+
+['us-W','us-H','us-LW','us-RW','us-CH'].forEach(id => {
+    document.getElementById(id).addEventListener('input', drawUShapeDiagram);
+});
+
+function showUShapePopup(defW, defH, defLW, defRW, defCH, editId) {
+    hideAllPopups();
+    editingUShapeId = editId;
+    document.getElementById('ushape-title').textContent = editId !== null ? 'Edit U-Shape' : 'U-Shape Dimensions';
+    document.getElementById('ushape-ok').textContent    = editId !== null ? 'Save' : 'Add Piece';
+    document.getElementById('us-W').value  = defW;
+    document.getElementById('us-H').value  = defH;
+    document.getElementById('us-LW').value = defLW;
+    document.getElementById('us-RW').value = defRW;
+    document.getElementById('us-CH').value = defCH;
+    setUShapeOpening(uShapeOpening);
+    currentPopup = 'ushape';
+    const cvRect = cv.getBoundingClientRect();
+    showPopupAt(document.getElementById('ushape-popup'), cvRect.left + cvRect.width/2 - 145, cvRect.top + 30);
+    const firstEl = document.getElementById('us-W');
+    firstEl.focus(); firstEl.select();
+    drawUShapeDiagram();
+}
+
+function confirmUShapePopup() {
+    const W  = parseFloat(document.getElementById('us-W').value)  || 0;
+    const H  = parseFloat(document.getElementById('us-H').value)  || 0;
+    const lW = parseFloat(document.getElementById('us-LW').value) || 0;
+    const rW = parseFloat(document.getElementById('us-RW').value) || 0;
+    const cH = parseFloat(document.getElementById('us-CH').value) || 0;
+    if (!W||!H||!lW||!rW||!cH) return;
+    if (lW+rW>=W || cH>=H) return;
+    const wPx=Math.round(W*INCH), hPx=Math.round(H*INCH);
+    const lWpx=Math.round(lW*INCH), rWpx=Math.round(rW*INCH), cHpx=Math.round(cH*INCH);
+    pushUndo();
+    if (editingUShapeId !== null) {
+        const s = byId(editingUShapeId);
+        if (s) { s.w=clamp(wPx,INCH,CW-s.x); s.h=clamp(hPx,INCH,CH-s.y); s.leftW=lWpx; s.rightW=rWpx; s.channelH=cHpx; s.uOpening=uShapeOpening; persist(); }
+    } else {
+        const cp = centeredPos(wPx, hPx);
+        shapes.push(normalizeShape({ id:nextId, label:`P${nextId}`, x:cp.x, y:cp.y, w:wPx, h:hPx,
+            shapeType:'u', leftW:lWpx, rightW:rWpx, channelH:cHpx, uOpening:uShapeOpening }));
+        nextId++; persist();
+    }
+    hideAllPopups(); setTool('select'); render(); updateStatus();
+}
+
+document.getElementById('ushape-ok').addEventListener('click', confirmUShapePopup);
+document.getElementById('ushape-cancel').addEventListener('click', () => { hideAllPopups(); render(); });
+['us-W','us-H','us-LW','us-RW','us-CH'].forEach(id => {
+    document.getElementById(id).addEventListener('keydown', e => {
+        if (e.key === 'Enter')  { e.preventDefault(); confirmUShapePopup(); }
+        if (e.key === 'Escape') { e.preventDefault(); hideAllPopups(); render(); }
+        e.stopPropagation();
+    });
+});
+
 // ─────────────────────────────────────────────────────────────
 //  Mouse handlers
 // ─────────────────────────────────────────────────────────────
@@ -2779,7 +3252,7 @@ cv.addEventListener('mousedown', e => {
     const sx = snap(p.x), sy = snap(p.y);
 
     // ── Draw ──
-    if (tool === 'draw' || tool === 'ldraw') {
+    if (tool === 'draw' || tool === 'ldraw' || tool === 'udraw') {
         drawing = true; dStart = { x:sx, y:sy }; dCur = { x:sx, y:sy }; return;
     }
 
@@ -2906,7 +3379,7 @@ cv.addEventListener('mousedown', e => {
                 pushUndo();
                 if (!eh.s.edges) {
                     if (eh.s.shapeType === 'circle') eh.s.edges = {arc:{type:'none'}};
-                    else if (eh.s.shapeType === 'l') eh.s.edges = {};
+                    else if (eh.s.shapeType === 'l' || eh.s.shapeType === 'u') eh.s.edges = {};
                     else eh.s.edges = {top:{type:'none'},right:{type:'none'},bottom:{type:'none'},left:{type:'none'}};
                 }
                 eh.s.edges[eh.key] = { type: 'mitered' };
@@ -2963,13 +3436,20 @@ cv.addEventListener('mousedown', e => {
             } else {
                 if (!eh.s.edges) {
                     if (eh.s.shapeType === 'circle') eh.s.edges = {arc:{type:'none'}};
-                    else if (eh.s.shapeType === 'l') eh.s.edges = {};
+                    else if (eh.s.shapeType === 'l' || eh.s.shapeType === 'u') eh.s.edges = {};
                     else eh.s.edges = {top:{type:'none'},right:{type:'none'},bottom:{type:'none'},left:{type:'none'}};
                 }
                 eh.s.edges[eh.key] = { type: activeEdgeType };
             }
             persist(); render();
         }
+        return;
+    }
+
+    // ── Split Edge ──
+    if (tool === 'splitedge') {
+        const eh = nearestEdge(p.x, p.y);
+        if (eh && !eh.key.startsWith('diag_')) { showSplitEdgePopup(eh); }
         return;
     }
 
@@ -3071,7 +3551,7 @@ cv.addEventListener('mousemove', e => {
     const p = mousePos(e);
     document.getElementById('st-pos').innerHTML = `Cursor: <b>${(p.x/INCH).toFixed(1)}″, ${(p.y/INCH).toFixed(1)}″</b>`;
 
-    if ((tool === 'draw' || tool === 'ldraw' || tool === 'bsp') && drawing) {
+    if ((tool === 'draw' || tool === 'ldraw' || tool === 'udraw' || tool === 'bsp') && drawing) {
         dCur = { x:clamp(snap(p.x),0,CW), y:clamp(snap(p.y),0,CH) };
         render(); return;
     }
@@ -3142,6 +3622,11 @@ cv.addEventListener('mousemove', e => {
         if (e2 !== hovEdge || ce !== hovCornerEdge) { hovEdge = e2; hovCornerEdge = ce; render(); }
         cv.style.cursor = (e2 || ce) ? 'pointer' : 'crosshair'; return;
     }
+    if (tool === 'splitedge') {
+        const e2 = nearestEdge(p.x, p.y);
+        if (e2 !== hovEdge) { hovEdge = e2; render(); }
+        cv.style.cursor = e2 ? 'pointer' : 'crosshair'; return;
+    }
     if (tool === 'joint') {
         const jh = hitJoint(p.x, p.y);
         cv.style.cursor = jh ? 'ew-resize' : (hitShape(p.x,p.y) ? 'crosshair' : 'default'); return;
@@ -3164,7 +3649,7 @@ cv.addEventListener('mouseup', e => {
         draggingJoint = false; draggingJointRef = null; persist(); return;
     }
 
-    if ((tool === 'draw' || tool === 'ldraw' || tool === 'bsp') && drawing) {
+    if ((tool === 'draw' || tool === 'ldraw' || tool === 'udraw' || tool === 'bsp') && drawing) {
         drawing = false;
         const dx = clamp(snap(p.x),0,CW) - dStart.x, dy = clamp(snap(p.y),0,CH) - dStart.y;
         const r = normRect(dStart.x, dStart.y, dx, dy);
@@ -3176,6 +3661,11 @@ cv.addEventListener('mouseup', e => {
         dStart = null; dCur = null; render();
         if (tool === 'ldraw') {
             showLShapePopup(preW, preH, Math.round(preW/2*10)/10, Math.round(preH/2*10)/10, null);
+        } else if (tool === 'udraw') {
+            const defLW = Math.round(preW/4*10)/10;
+            const defRW = Math.round(preW/4*10)/10;
+            const defCH = Math.round(preH/2*10)/10;
+            showUShapePopup(preW, preH, defLW, defRW, defCH, null);
         } else if (tool === 'bsp') {
             pendingBspPlace = { x: placeX, y: placeY };
             showBspPopup(preW, 4, 18, Math.round(preW/3), Math.round(preW/3), null);
@@ -3217,6 +3707,9 @@ cv.addEventListener('dblclick', e => {
         if (hit.shapeType === 'l') {
             lshapeCorner = hit.notchCorner || 'ne';
             showLShapePopup(pxToIn(hit.w), pxToIn(hit.h), pxToIn(hit.notchW||0), pxToIn(hit.notchH||0), hit.id);
+        } else if (hit.shapeType === 'u') {
+            uShapeOpening = hit.uOpening || 'top';
+            showUShapePopup(pxToIn(hit.w), pxToIn(hit.h), pxToIn(hit.leftW||0), pxToIn(hit.rightW||0), pxToIn(hit.channelH||0), hit.id);
         } else if (hit.shapeType === 'bsp') {
             showBspPopup(pxToIn(hit.w), pxToIn(hit.h-hit.pH), pxToIn(hit.pH), pxToIn(hit.pW), pxToIn(hit.pX), hit.id);
         } else if (hit.shapeType === 'circle') {
@@ -3244,6 +3737,32 @@ document.addEventListener('keydown', e => {
             if (selectedMeasure !== null || selectedText !== null || selected !== null) {
                 e.preventDefault(); deleteSelected(); return;
             }
+        }
+    }
+    // Rotate selected shape 90° with R key
+    if ((e.key === 'r' || e.key === 'R') && selected !== null && document.activeElement === document.body) {
+        const s = byId(selected);
+        if (s) {
+            e.preventDefault(); pushUndo();
+            if (s.shapeType === 'l') {
+                const cycle = { ne:'se', se:'sw', sw:'nw', nw:'ne' };
+                s.notchCorner = cycle[s.notchCorner || 'ne'] || 'se';
+                const oldW = s.w, oldH = s.h, oldNW = s.notchW, oldNH = s.notchH;
+                s.w = oldH; s.h = oldW; s.notchW = oldNH; s.notchH = oldNW;
+            } else if (s.shapeType === 'u') {
+                const cycle = { top:'right', right:'bottom', bottom:'left', left:'top' };
+                s.uOpening = cycle[s.uOpening || 'top'] || 'right';
+                const oldW = s.w, oldH = s.h, oldLW = s.leftW, oldRW = s.rightW, oldCH = s.channelH;
+                s.w = oldH; s.h = oldW; s.leftW = oldLW; s.rightW = oldRW; s.channelH = oldCH;
+            } else if (s.shapeType === 'circle') {
+                // No change — circles are symmetric
+            } else {
+                // Rectangles, BSP, sinks, cooktops — swap w and h
+                const oldW = s.w; s.w = s.h; s.h = oldW;
+            }
+            // Keep shape within canvas
+            s.x = clamp(s.x, 0, CW - s.w); s.y = clamp(s.y, 0, CH - s.h);
+            persist(); render(); updateStatus(); return;
         }
     }
     if ((e.key === 'ArrowUp' || e.key === 'ArrowDown') && selectedMeasure !== null && document.activeElement === document.body) {
@@ -3314,7 +3833,7 @@ document.getElementById('text-content').addEventListener('keydown', e => {
 });
 
 // ─────────────────────────────────────────────────────────────
-const TOOL_BTNS = { draw:'btn-draw', ldraw:'btn-ldraw', bsp:'btn-bsp', circle:'btn-circle', select:'btn-select', radius:'btn-radius', edge:'btn-edge', joint:'btn-joint', sink:'btn-sink', cooktop:'btn-cooktop', outlet:'btn-outlet', bocci:'btn-bocci', text:'btn-text', measure:'btn-measure' };
+const TOOL_BTNS = { draw:'btn-draw', ldraw:'btn-ldraw', udraw:'btn-udraw', bsp:'btn-bsp', circle:'btn-circle', select:'btn-select', radius:'btn-radius', edge:'btn-edge', splitedge:'btn-splitedge', joint:'btn-joint', sink:'btn-sink', cooktop:'btn-cooktop', outlet:'btn-outlet', bocci:'btn-bocci', text:'btn-text', measure:'btn-measure' };
 function setTool(t) {
     ghostText = null; // cancel any floating text
     measurePt1 = null; measureHover = null;
@@ -3322,10 +3841,10 @@ function setTool(t) {
     drawing = false; moving = false; resizing = false; draggingJoint = false;
     hovCorner = null; hovEdge = null; hovCornerEdge = null;
     selectedText = null;
-    cv.style.cursor = ['draw','ldraw','bsp','circle','sink','cooktop','outlet','bocci','radius','edge','joint','measure'].includes(t) ? 'crosshair' : 'default';
-    document.getElementById('edge-palette').style.display = t === 'edge' ? 'flex' : 'none';
+    cv.style.cursor = ['draw','ldraw','udraw','bsp','circle','sink','cooktop','outlet','bocci','radius','edge','splitedge','joint','measure'].includes(t) ? 'crosshair' : 'default';
+    document.getElementById('edge-palette').style.display = (t === 'edge' || t === 'splitedge') ? 'flex' : 'none';
     Object.entries(TOOL_BTNS).forEach(([k,id]) => document.getElementById(id).classList.toggle('active', k === t));
-    const labels = { draw:'Draw Rectangle', ldraw:'Draw L-Shape', bsp:'Draw Backsplash', circle:'Draw Circle', select:'Select / Move', radius:'Add Radius', edge:'Edge Profile', joint:'Joint Line', sink:'Sink', cooktop:'Cooktop', outlet:'Outlet (2×4")', bocci:'Bocci Outlet (2" circle)', text:'Add Text', measure:'Outil de Mesure' };
+    const labels = { draw:'Draw Rectangle', ldraw:'Draw L-Shape', udraw:'Draw U-Shape', bsp:'Draw Backsplash', circle:'Draw Circle', select:'Select / Move', radius:'Add Radius', edge:'Edge Profile', splitedge:'Split Edge', joint:'Joint Line', sink:'Sink', cooktop:'Cooktop', outlet:'Outlet (2×4")', bocci:'Bocci Outlet (2" circle)', text:'Add Text', measure:'Outil de Mesure' };
     document.getElementById('st-tool').innerHTML = `Tool: <b>${labels[t]||t}</b>`;
     render();
 }
@@ -3373,7 +3892,7 @@ let matDbNextId = 1;
 let pricingData = {
     rates: {
         cutPerSqft: 12,
-        polishPerLft: 12,
+        pencilPerLft: 12, ogeePerLft: 14, bullnosePerLft: 16, halfbullPerLft: 14, bevelPerLft: 12,
         measurementFee: 150,
         sinkOvermount: 200,
         sinkUndermount: 350,
@@ -3718,7 +4237,9 @@ function updateLiveLegend() {
     for (const s of shapes) {
         if (s.edges) {
             for (const side of Object.values(s.edges)) {
-                if (side?.type && side.type !== 'none') used.add(side.type);
+                if (side?.type === 'segmented' && side.segments) {
+                    for (const seg of side.segments) { if (seg.profile && seg.profile !== 'none') used.add(seg.profile); }
+                } else if (side?.type && side.type !== 'none') used.add(side.type);
             }
         }
         if (s.joints && s.joints.length) hasJoint = true;
@@ -3729,7 +4250,7 @@ function updateLiveLegend() {
         el.innerHTML = '<span class="ll-empty">No edge profiles assigned yet.</span>';
         return;
     }
-    const order = ['polished','mitered','special','joint','waterfall'];
+    const order = ['pencil','ogee','bullnose','halfbull','bevel','mitered','special','joint','waterfall'];
     let html = '';
     for (const type of order) {
         if (!used.has(type)) continue;
@@ -3788,6 +4309,7 @@ function calcTotalSqft() {
             } else {
                 let area = s.w * s.h;
                 if (s.shapeType === 'l') area -= (s.notchW || 0) * (s.notchH || 0);
+                if (s.shapeType === 'u') area -= (s.w - (s.leftW||0) - (s.rightW||0)) * (s.channelH||0);
                 if (s.shapeType === 'circle') area = Math.PI * (s.w / 2) * (s.h / 2);
                 total += area;
             }
@@ -3833,7 +4355,10 @@ function calcPageEdgeLinearFt(page, edgeType) {
         } else if (s.shapeType === 'l') {
             const sides = lShapeSides(s);
             for (const sd of sides) {
-                if (s.edges?.[sd.key]?.type === edgeType) {
+                const ed = s.edges?.[sd.key];
+                if (ed?.type === 'segmented' && ed.segments) {
+                    for (const seg of ed.segments) { if (seg.profile === edgeType) totalPx += seg.length * INCH; }
+                } else if (ed?.type === edgeType) {
                     totalPx += Math.hypot(sd.x2 - sd.x1, sd.y2 - sd.y1);
                 }
             }
@@ -3850,10 +4375,23 @@ function calcPageEdgeLinearFt(page, edgeType) {
                     }
                 }
             }
+        } else if (s.shapeType === 'u') {
+            const sides = uShapeSides(s);
+            for (const sd of sides) {
+                const ed = s.edges?.[sd.key];
+                if (ed?.type === 'segmented' && ed.segments) {
+                    for (const seg of ed.segments) { if (seg.profile === edgeType) totalPx += seg.length * INCH; }
+                } else if (ed?.type === edgeType) {
+                    totalPx += Math.hypot(sd.x2 - sd.x1, sd.y2 - sd.y1);
+                }
+            }
         } else if (s.shapeType === 'bsp') {
             const sides = bspSides(s);
             for (const sd of sides) {
-                if (s.edges?.[sd.key]?.type === edgeType) {
+                const ed = s.edges?.[sd.key];
+                if (ed?.type === 'segmented' && ed.segments) {
+                    for (const seg of ed.segments) { if (seg.profile === edgeType) totalPx += seg.length * INCH; }
+                } else if (ed?.type === edgeType) {
                     totalPx += Math.hypot(sd.x2 - sd.x1, sd.y2 - sd.y1);
                 }
             }
@@ -3871,7 +4409,10 @@ function calcPageEdgeLinearFt(page, edgeType) {
                 { key:'left',   len: s.h - swB - nwB },
             ];
             for (const sd of sideSegs) {
-                if (sd.len > 0 && s.edges?.[sd.key]?.type === edgeType) totalPx += sd.len;
+                const ed = s.edges?.[sd.key];
+                if (ed?.type === 'segmented' && ed.segments) {
+                    for (const seg of ed.segments) { if (seg.profile === edgeType) totalPx += seg.length * INCH; }
+                } else if (sd.len > 0 && ed?.type === edgeType) totalPx += sd.len;
             }
             // corner arcs
             const corners = ['nw','ne','se','sw'];
@@ -3964,7 +4505,11 @@ function renderCostsPanel() {
         const R = pricingData.rates;
         const rateFields = [
             { key:'cutPerSqft',     label:'Cut rate $/sqft' },
-            { key:'polishPerLft',   label:'Polish $/lin ft' },
+            { key:'pencilPerLft',   label:'Pencil $/lin ft' },
+            { key:'ogeePerLft',     label:'Ogee $/lin ft' },
+            { key:'bullnosePerLft', label:'Bullnose $/lin ft' },
+            { key:'halfbullPerLft', label:'Half Bullnose $/lin ft' },
+            { key:'bevelPerLft',    label:'Bevel $/lin ft' },
             { key:'measurementFee', label:'Measurement fee $' },
             { key:'sinkOvermount',  label:'Sink overmount $' },
             { key:'sinkUndermount', label:'Sink undermount $' },
@@ -3998,7 +4543,7 @@ function renderPricingPanel() {
 
     for (const page of pages) {
         const sqft = calcPageSqft(page);
-        const polishedLft = calcPageEdgeLinearFt(page, 'polished');
+        const polishedLft = [...POLISHED_TYPES].reduce((s,t) => s + calcPageEdgeLinearFt(page, t), 0);
         const waterfallLft = calcPageEdgeLinearFt(page, 'waterfall');
         const sinks = calcPageSinkCounts(page);
 
@@ -4009,6 +4554,7 @@ function renderPricingPanel() {
             if (s.subtype) continue;
             let area = s.w * s.h;
             if (s.shapeType === 'l') area -= (s.notchW||0) * (s.notchH||0);
+            if (s.shapeType === 'u') area -= (s.w - (s.leftW||0) - (s.rightW||0)) * (s.channelH||0);
             if (s.shapeType === 'circle') area = Math.PI * (s.w / 2) * (s.h / 2);
             const mid = s.materialId || (formData.materials[0] && formData.materials[0].id) || 0;
             matSqftMap[mid] = (matSqftMap[mid] || 0) + area / SQFT_PX2;
@@ -4112,7 +4658,7 @@ function renderPricingSummaryOnly() {
 
     for (const page of pages) {
         const sqft = calcPageSqft(page);
-        const polishedLft = calcPageEdgeLinearFt(page, 'polished');
+        const polishedLft = [...POLISHED_TYPES].reduce((s,t) => s + calcPageEdgeLinearFt(page, t), 0);
         const waterfallLft = calcPageEdgeLinearFt(page, 'waterfall');
         const sinks = calcPageSinkCounts(page);
 
@@ -4121,6 +4667,7 @@ function renderPricingSummaryOnly() {
             if (s.subtype) continue;
             let area = s.w * s.h;
             if (s.shapeType === 'l') area -= (s.notchW||0) * (s.notchH||0);
+            if (s.shapeType === 'u') area -= (s.w - (s.leftW||0) - (s.rightW||0)) * (s.channelH||0);
             if (s.shapeType === 'circle') area = Math.PI * (s.w / 2) * (s.h / 2);
             const mid = s.materialId || (formData.materials[0] && formData.materials[0].id) || 0;
             matSqftMap[mid] = (matSqftMap[mid] || 0) + area / SQFT_PX2;
@@ -4313,6 +4860,7 @@ function shapeLocalPolyInches(s) {
     const st = s.shapeType || 'rect';
     const toLocal = pts => pts.map(([x,y]) => [(x - s.x)/INCH, (y - s.y)/INCH]);
     if (st === 'l')   return toLocal(lShapePolygon(s));
+    if (st === 'u')   return toLocal(uShapePolygon(s));
     if (st === 'bsp') return toLocal(bspPolygon(s));
     if (st === 'circle') {
         // 32-point polygon approximation of the circle for kerf/collision
@@ -4485,7 +5033,7 @@ function slabAllPieces() {
             // Split rect/BSP/L shapes at their joint lines into grid cells
             const vJoints = joints.filter(j => j.axis === 'v').map(j => j.pos / INCH).sort((a,b)=>a-b);
             const hJoints = joints.filter(j => j.axis === 'h').map(j => j.pos / INCH).sort((a,b)=>a-b);
-            const canSplit = (st === 'rect' || st === 'bsp' || st === 'l') && joints.length > 0;
+            const canSplit = (st === 'rect' || st === 'bsp' || st === 'l' || st === 'u') && joints.length > 0;
 
             if (!canSplit) {
                 out.push({ pageIdx:pi, shapeIdx:si, label:baseLabel, pageLabel, wi, hi, shapeType:st, segIdx:null });
@@ -4545,7 +5093,7 @@ function slabRefreshPieceList() {
             pl.ref.pageIdx === p.pageIdx && pl.ref.shapeIdx === p.shapeIdx &&
             (p.segIdx == null ? pl.ref.segIdx == null : pl.ref.segIdx === p.segIdx)
         ).length;
-        const typeTag = p.segIdx == null && p.shapeType === 'l' ? ' [L]' : p.segIdx == null && p.shapeType === 'bsp' ? ' [BSP]' : '';
+        const typeTag = p.segIdx == null && p.shapeType === 'l' ? ' [L]' : p.segIdx == null && p.shapeType === 'u' ? ' [U]' : p.segIdx == null && p.shapeType === 'bsp' ? ' [BSP]' : '';
         btn.textContent = `${p.label}${typeTag}  ${p.wi.toFixed(2)}" × ${p.hi.toFixed(2)}"  [${p.pageLabel}]`;
         btn.title = placed ? 'Already placed — remove from slab to reuse' : 'Click to place on slab';
         if (placed) {
@@ -4851,19 +5399,22 @@ function slabDrawSlab(ctx, sd, idx, ox, oy, sc, mockupMode) {
                     }
                 }
                 ctx.closePath();
+            } else if (shapeType === 'u' && shape && p.ref.segIdx == null) {
+                const pts = uShapePolygon(shape);
+                const first = convAbs(pts[0]);
+                ctx.moveTo(first[0], first[1]);
+                for (let i = 1; i < pts.length; i++) { const pt = convAbs(pts[i]); ctx.lineTo(pt[0], pt[1]); }
+                ctx.closePath();
             } else if (shapeType === 'bsp' && shape && p.ref.segIdx == null) {
-                // Full BSP — exact T-shape polygon
                 const pts = bspPolygon(shape);
                 const first = convAbs(pts[0]);
                 ctx.moveTo(first[0], first[1]);
                 for (let i = 1; i < pts.length; i++) { const pt = convAbs(pts[i]); ctx.lineTo(pt[0], pt[1]); }
                 ctx.closePath();
             } else if (shapeType === 'circle') {
-                // Circle — draw as arc (rotation is irrelevant for a circle)
                 const r = pxw / 2;
                 ctx.arc(px + r, py + r, r, 0, Math.PI * 2);
             } else {
-                // Rect (full piece or rectangular segment) — apply rounded/chamfered corners
                 const r   = shape ? shapeRadii(shape)    : { nw:0,ne:0,se:0,sw:0 };
                 const ch  = shape ? shapeChamfers(shape)  : { nw:0,ne:0,se:0,sw:0 };
                 const chB = shape ? shapeChamfersB(shape) : { nw:0,ne:0,se:0,sw:0 };
@@ -5248,6 +5799,7 @@ function calcPageSqft(page) {
         } else {
             let area = s.w * s.h;
             if (s.shapeType === 'l') area -= (s.notchW||0) * (s.notchH||0);
+            if (s.shapeType === 'u') area -= (s.w - (s.leftW||0) - (s.rightW||0)) * (s.channelH||0);
             if (s.shapeType === 'circle') area = Math.PI * (s.w / 2) * (s.h / 2);
             total += area;
         }
@@ -5266,6 +5818,12 @@ function calcPageEdgeFootage(page) {
             if (!type || type === 'none' || type === 'joint') return;
             totals[type] = (totals[type] || 0) + lenPx;
         }
+        // Helper: handle both single and segmented edges
+        function addEdge(edgeData, lenPx) {
+            if (edgeData?.type === 'segmented' && edgeData.segments) {
+                for (const seg of edgeData.segments) addSeg(seg.profile, seg.length * INCH);
+            } else { addSeg(edgeData?.type, lenPx); }
+        }
 
         if (s.shapeType === 'circle') {
             const r = s.w / 2;
@@ -5274,7 +5832,7 @@ function calcPageEdgeFootage(page) {
             // 6 straight sides
             const sides = lShapeSides(s);
             for (const sd of sides) {
-                addSeg(s.edges?.[sd.key]?.type, Math.hypot(sd.x2-sd.x1, sd.y2-sd.y1));
+                addEdge(s.edges?.[sd.key], Math.hypot(sd.x2-sd.x1, sd.y2-sd.y1));
             }
             // chamfer diagonals
             const verts = lShapeVerts(s);
@@ -5285,10 +5843,15 @@ function calcPageEdgeFootage(page) {
                     addSeg(s.chamferEdges?.[dk]?.type, Math.hypot(nv.pout[0]-nv.pin[0], nv.pout[1]-nv.pin[1]));
                 }
             }
+        } else if (s.shapeType === 'u') {
+            const sides = uShapeSides(s);
+            for (const sd of sides) {
+                addEdge(s.edges?.[sd.key], Math.hypot(sd.x2-sd.x1, sd.y2-sd.y1));
+            }
         } else if (s.shapeType === 'bsp') {
             const sides = bspSides(s);
             for (const sd of sides) {
-                addSeg(s.edges?.[sd.key]?.type, Math.hypot(sd.x2-sd.x1, sd.y2-sd.y1));
+                addEdge(s.edges?.[sd.key], Math.hypot(sd.x2-sd.x1, sd.y2-sd.y1));
             }
         } else {
             // rect: 4 sides + corner arcs + chamfer diagonals
@@ -5304,7 +5867,7 @@ function calcPageEdgeFootage(page) {
                 { key:'left',   len: s.h - swB - nwB },
             ];
             for (const sd of sideSegs) {
-                if (sd.len > 0) addSeg(s.edges?.[sd.key]?.type, sd.len);
+                if (sd.len > 0) addEdge(s.edges?.[sd.key], sd.len);
             }
             // corner arcs
             const corners = ['nw','ne','se','sw'];
@@ -5335,7 +5898,7 @@ function calcRoomPricing(page) {
     const TAX      = 1.14975; // 1 + GST(5%) + QST(9.975%)
     const R        = pricingData.rates;
     const roomSqft = calcPageSqft(page);
-    const polishedLft  = calcPageEdgeLinearFt(page, 'polished');
+    const polishedLft  = [...POLISHED_TYPES].reduce((s,t) => s + calcPageEdgeLinearFt(page, t), 0);
     const waterfallLft = calcPageEdgeLinearFt(page, 'waterfall');
     const sinks = calcPageSinkCounts(page);
 
@@ -5345,6 +5908,7 @@ function calcRoomPricing(page) {
         if (s.subtype) continue;
         let area = s.w * s.h;
         if (s.shapeType === 'l') area -= (s.notchW||0) * (s.notchH||0);
+        if (s.shapeType === 'u') area -= (s.w - (s.leftW||0) - (s.rightW||0)) * (s.channelH||0);
         if (s.shapeType === 'circle') area = Math.PI * (s.w / 2) * (s.h / 2);
         const mid = s.materialId || (formData.materials[0] && formData.materials[0].id) || 0;
         matSqftMap[mid] = (matSqftMap[mid] || 0) + area / SQFT_PX2;
@@ -6023,7 +6587,7 @@ function exportPDF() {
     // ── Edge Profile Legend ──────────────────────────────────
     if (usedTypes.size || hasInternalJoint) {
         y += 4; sectionHead('EDGE PROFILE LEGEND');
-        const typeOrder = ['polished','mitered','special','joint','waterfall'];
+        const typeOrder = ['pencil','ogee','bullnose','halfbull','bevel','mitered','special','joint','waterfall'];
         for (const type of typeOrder) {
             if (!usedTypes.has(type)) continue;
             const def = EDGE_DEFS[type];
@@ -6769,6 +7333,10 @@ function kitBuildPath(ctx, p, px, py, sc, rotOverride) {
         const verts=lShapeVerts(shape),n=verts.length;
         const v0=convAbs(verts[0].pout); ctx.moveTo(v0[0],v0[1]);
         for(let i=0;i<n;i++){const nv=verts[(i+1)%n],pin=convAbs(nv.pin);ctx.lineTo(pin[0],pin[1]);if(nv.t>0){if(nv.r===0){const po=convAbs(nv.pout);ctx.lineTo(po[0],po[1]);}else{const cu=convAbs(nv.curr),po=convAbs(nv.pout);ctx.arcTo(cu[0],cu[1],po[0],po[1],nv.r/INCH*sc);}}}
+        ctx.closePath();
+    } else if (st==='u'&&shape&&p.ref.segIdx==null) {
+        const pts=uShapePolygon(shape),f=convAbs(pts[0]);ctx.moveTo(f[0],f[1]);
+        for(let i=1;i<pts.length;i++){const pt=convAbs(pts[i]);ctx.lineTo(pt[0],pt[1]);}
         ctx.closePath();
     } else if (st==='bsp'&&shape&&p.ref.segIdx==null) {
         const pts=bspPolygon(shape),f=convAbs(pts[0]);ctx.moveTo(f[0],f[1]);
